@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     temperature: float
     ollama_base_url: str
 
+    embedding_model: str
+
     # openai_api_key: str | None = None
     # anthropic_api_key: str | None = None
     model_config = SettingsConfigDict(

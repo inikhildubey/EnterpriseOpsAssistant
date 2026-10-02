@@ -11,3 +11,6 @@ wheels/
 
 #environment variables
 .env
+
+.DS_Store
+app/data
