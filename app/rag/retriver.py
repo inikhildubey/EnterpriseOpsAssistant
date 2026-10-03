@@ -11,3 +11,20 @@ def get_billing_retriever() -> BaseRetriever:
             "k": 3,
         }
     )
+
+
+def format_documents(documents):
+    formatted_documents = []
+
+    for document in documents:
+        formatted_documents.append(
+            f"""
+        Source: {document.metadata.get("source")}
+        Section: {document.metadata.get("section")}
+        Subsection: {document.metadata.get("subsection")}
+
+        {document.page_content}
+        """.strip()
+                )
+
+    return "\n\n---\n\n".join(formatted_documents)
