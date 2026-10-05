@@ -16,5 +16,4 @@ def get_llm():
             model=settings.model_name,
             temperature=settings.temperature,
             )
-
-
+    raise ValueError(f"Unsupported model provider: {settings.model_provider}")
