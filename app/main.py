@@ -104,18 +104,9 @@ def test_agent_abstract_orchestration():
     agent = get_billing_agent()
 
     result = agent.invoke({"messages": [{"role": "user",
-                                         #   "content": (# "Use get_invoice to retrieve invoice INV-12345. "
-                                         # "Then use get_transaction_details with customer_id CUST-1001"
-                                         # "and invoice_id INV-12345."
-                                         # "Compare the invoice amount with the transaction amount"
-                                         # "and explain the discrepancy."
-                                         # "My invoice INV-12345 says I was charged $319, but I only paid $249. Can you check what's going on?"), }]})
                                          "content": (
-                                             "Use get_invoice to retrieve invoice INV-12345. "
-                                             "Then use the customer_id returned by that tool "
-                                             "to call get_payment for the same invoice. "
-                                             "Compare the invoice amount with the payment amount "
-                                             "and explain the discrepancy."), }]})
+                    "My invoice INV-12345 says I was charged $319, "
+                    "but I only paid $249. Can you check what's going on?"), }]})
     print(result)
 
 
