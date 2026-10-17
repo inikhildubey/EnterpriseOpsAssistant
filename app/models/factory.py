@@ -1,4 +1,6 @@
 from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+
 from app.config.settings import settings
 
 
@@ -16,4 +18,11 @@ def get_llm():
             model=settings.model_name,
             temperature=settings.temperature,
             )
+    elif settings.model_provider == "openrouter":
+        return ChatOpenAI(
+            model=settings.model_name,
+            temperature=settings.temperature,
+            api_key=settings.openrouter_api_key,
+            base_url=settings.openrouter_base_url,
+        )
     raise ValueError(f"Unsupported model provider: {settings.model_provider}")
