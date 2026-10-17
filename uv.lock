@@ -441,6 +441,7 @@ dependencies = [
     { name = "langchain-chroma" },
     { name = "langchain-ollama" },
     { name = "langchain-text-splitters" },
+    { name = "langgraph" },
     { name = "pydantic-settings" },
 ]
 
@@ -451,6 +452,7 @@ requires-dist = [
     { name = "langchain-chroma", specifier = ">=1.1.0" },
     { name = "langchain-ollama", specifier = ">=1.1.0" },
     { name = "langchain-text-splitters", specifier = ">=1.1.2" },
+    { name = "langgraph", specifier = ">=1.2.12" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
 ]
 

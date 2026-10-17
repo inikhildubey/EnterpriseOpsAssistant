@@ -117,7 +117,7 @@ def get_subscription(customer_id: str) -> dict:
     return subscription
 
 @tool
-def get_payment_status(invoice_id: str) -> dict:
+def get_transaction_details(invoice_id: str) -> dict:
     """
     Retrieve the current payment status recorded on an invoice.
 

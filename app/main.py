@@ -1,9 +1,10 @@
 from langchain_core.messages import ToolMessage
 
 from app.agents.billing import get_billing_agent
+from app.graph.billing import build_billing_graph
 from app.models.factory import get_llm
 from app.tools.billing import get_invoice, get_payment
-from app.tools.billing import (get_payment_status, get_subscription)
+from app.tools.billing import (get_transaction_details, get_subscription)
 
 llm = get_llm()
 
@@ -71,7 +72,7 @@ def test_manual_agent_multiple_tools():
                   "Compare the invoice amount with the transaction amount "
                   "and explain the discrepancy.")
 
-    tools = [get_invoice, get_payment_status, get_subscription, get_transaction_details, ]
+    tools = [get_invoice, get_transaction_details, get_subscription, get_transaction_details, ]
 
     tools_by_name = {tool.name: tool for tool in tools}
 
@@ -221,9 +222,25 @@ def tset_third_tool_call_manually():
     print(response2.tool_calls)
 
 
+def test_graph():
+    print("-" * 44)
+    print("Main Function")
+    graph = build_billing_graph()
+
+    result = graph.invoke({
+        "question": (
+            "My invoice INV-12345 says I was charged "
+            "$319, but I only paid $249."
+        ),
+        "invoice_id": "INV-12345",
+    })
+
+    print(result)
+
 if __name__ == "__main__":
     # test_manual_agent_single_tools()
     # test_manual_agent_multiple_tools()
-    test_agent_abstract_orchestration()
+    # test_agent_abstract_orchestration()
     # test_second_tool_call_manually()
     # tset_third_tool_call_manually()
+    test_graph()
