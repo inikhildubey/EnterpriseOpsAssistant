@@ -11,6 +11,12 @@ class BillingState(TypedDict, total=False):
     discrepancy: float
     answer: str
 
+    # Human approval workflow
+    refund_amount: float
+    refund_reason: str
+    approval_status: str
+
+
 
 class AccountsState(TypedDict, total=False):
     question: str
@@ -29,3 +35,9 @@ class RouterState(TypedDict, total=False):
     question: str
     department: str
     answer: str
+
+    customer_id: str
+    invoice_id: str
+    refund_amount: float
+    refund_reason: str
+    approval_status: str
