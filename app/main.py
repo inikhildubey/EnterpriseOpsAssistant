@@ -1,7 +1,7 @@
 from langchain_core.messages import ToolMessage
 
 from app.agents.billing import get_billing_agent
-from app.graph.billing import build_billing_graph
+from app.graph.router import build_router_graph
 from app.models.factory import get_llm
 from app.tools.billing import get_invoice, get_payment
 from app.tools.billing import (get_transaction_details, get_subscription)
@@ -225,12 +225,13 @@ def tset_third_tool_call_manually():
 def test_graph():
     print("-" * 44)
     print("Main Function")
-    graph = build_billing_graph()
+    graph = build_router_graph()
 
     result = graph.invoke({
         "question": (
-            "My invoice INV-12345 says I was charged "
-            "$319, but I only paid $249."
+            # "My invoice INV-12345 says I was charged "
+            # "$319, but I only paid $249."
+            "My system is not working"
         ),
         "invoice_id": "INV-12345",
     })

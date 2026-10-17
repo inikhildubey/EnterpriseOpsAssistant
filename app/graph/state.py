@@ -1,19 +1,31 @@
+# app/graph/state.py
 from typing import TypedDict
 
 
 class BillingState(TypedDict, total=False):
-
     question: str
-
     invoice_id: str
     customer_id: str
-
     invoice_amount: float
     payment_amount: float
-
-    payment_status: str
-    transaction_id: str
-
     discrepancy: float
+    answer: str
+
+
+class AccountsState(TypedDict, total=False):
+    question: str
+    customer_id: str
+    subscription_status: str
+    answer: str
+
+
+class SupportState(TypedDict, total=False):
+    question: str
+    issue_description: str
+    answer: str
+
+
+class RouterState(TypedDict, total=False):
+    question: str
     department: str
     answer: str
