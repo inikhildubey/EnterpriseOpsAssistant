@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "chromadb>=1.5.9",
+    "fastapi>=0.143.3",
     "langchain>=1.4.3",
     "langchain-chroma>=1.1.0",
     "langchain-ollama>=1.1.0",
@@ -13,4 +14,7 @@ dependencies = [
     "langchain-text-splitters>=1.1.2",
     "langgraph>=1.2.12",
     "pydantic-settings>=2.15.0",
+    "requests>=2.34.2",
+    "streamlit>=1.66.0",
+    "uvicorn[standard]>=0.54.0",
 ]
