@@ -1,15 +1,15 @@
+# app/tools/billing.py
 from langchain_core.tools import tool
-
 
 INVOICES = {
     "INV-12344": {
-            "invoice_id": "INV-12344",
-            "customer_id": "CUST-1002",
-            "amount": 249.00,
-            "currency": "USD",
-            "status": "paid",
-            "billing_period": "2026-09-01 to 2026-09-30",
-        },
+        "invoice_id": "INV-12344",
+        "customer_id": "CUST-1002",
+        "amount": 249.00,
+        "currency": "USD",
+        "status": "paid",
+        "billing_period": "2026-09-01 to 2026-09-30",
+    },
     "INV-12345": {
         "invoice_id": "INV-12345",
         "customer_id": "CUST-1001",
@@ -37,24 +37,24 @@ INVOICES = {
 }
 
 SUBSCRIPTIONS = {
-    "CUST-1001" : {
-    "customer_id": "CUST-1001",
-    "invoice_id": "INV-12346",
-    "status": "active",
-    "plan": "Premium",
-    "billing_cycle": "monthly",
-},
-"CUST-1002" : {
-    "customer_id": "CUST-1002",
-    "invoice_id": "INV-12347",
-    "status": "active",
-    "plan": "Basic",
-    "billing_cycle": "monthly",
-}
+    "CUST-1001": {
+        "customer_id": "CUST-1001",
+        "invoice_id": "INV-12346",
+        "status": "active",
+        "plan": "Premium",
+        "billing_cycle": "monthly",
+    },
+    "CUST-1002": {
+        "customer_id": "CUST-1002",
+        "invoice_id": "INV-12347",
+        "status": "active",
+        "plan": "Basic",
+        "billing_cycle": "monthly",
+    }
 }
 
 TRANSACTIONS = {
-    "CUST-1001":{"INV-12345": {
+    "CUST-1001": {"INV-12345": {
         "invoice_id": "INV-12345",
         "customer_id": "CUST-1001",
         "transaction_id": "TXN-54321",
@@ -63,7 +63,7 @@ TRANSACTIONS = {
         "status": "completed",
         "date": "2026-09-15",
     }},
-    "CUST-1002":{"INV-12344":{
+    "CUST-1002": {"INV-12344": {
         "invoice_id": "INV-12344",
         "customer_id": "CUST-1002",
         "transaction_id": "TXN-54320",
@@ -72,15 +72,15 @@ TRANSACTIONS = {
         "status": "completed",
         "date": "2026-09-08",
     },
-    "INV-12347":{
-        "invoice_id": "INV-12347",
-        "customer_id": "CUST-1002",
-        "transaction_id": "TXN-54399",
-        "amount": 249.00,
-        "currency": "USD",
-        "status": "completed",
-        "date": "2026-09-03",
-    }}
+        "INV-12347": {
+            "invoice_id": "INV-12347",
+            "customer_id": "CUST-1002",
+            "transaction_id": "TXN-54399",
+            "amount": 249.00,
+            "currency": "USD",
+            "status": "completed",
+            "date": "2026-09-03",
+        }}
 }
 
 
@@ -113,8 +113,9 @@ def get_subscription(customer_id: str) -> dict:
     if not subscription:
         return {
             "error": f"Subscription for customer {customer_id} was not found."
-        }   
+        }
     return subscription
+
 
 @tool
 def get_transaction_details(invoice_id: str) -> dict:
@@ -139,6 +140,7 @@ def get_transaction_details(invoice_id: str) -> dict:
         "amount": invoice["amount"],
         "currency": invoice["currency"],
     }
+
 
 @tool
 def get_payment(customer_id: str, invoice_id: str) -> dict:
@@ -169,3 +171,20 @@ def get_payment(customer_id: str, invoice_id: str) -> dict:
         }
 
     return transaction
+
+
+@tool()
+def get_transactions_by_customer_id(customer_id: str) -> dict:
+    """
+    Get the list of transactions by customer_id.
+
+    """
+    transactions = TRANSACTIONS.get(customer_id)
+    if not transactions:
+        return {
+            "error": (
+                f"Any transaction for customer {customer_id} was not found."
+            )
+        }
+
+    return transactions

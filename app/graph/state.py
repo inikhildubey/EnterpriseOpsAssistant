@@ -17,7 +17,6 @@ class BillingState(TypedDict, total=False):
     approval_status: str
 
 
-
 class AccountsState(TypedDict, total=False):
     question: str
     customer_id: str
@@ -41,3 +40,5 @@ class RouterState(TypedDict, total=False):
     refund_amount: float
     refund_reason: str
     approval_status: str
+    status: str
+

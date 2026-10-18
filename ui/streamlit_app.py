@@ -1,5 +1,7 @@
+
 import requests
 import streamlit as st
+from uuid import uuid4
 
 API_URL = "http://127.0.0.1:8000"
 
@@ -11,15 +13,22 @@ st.set_page_config(
 st.title("🤖 EnterpriseOpsAssistant")
 st.caption("Your AI assistant for billing, accounts, and support.")
 
+# Keep one conversation ID per browser session.
+if "thread_id" not in st.session_state:
+    st.session_state.thread_id = str(uuid4())
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display previous messages in this browser session.
+# Display conversation history.
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Ask about an invoice, subscription, or issue..."):
+# Send a request only when the user submits a message.
+if prompt := st.chat_input(
+    "Ask about an invoice, subscription, or issue..."
+):
     st.session_state.messages.append(
         {"role": "user", "content": prompt}
     )
@@ -32,12 +41,30 @@ if prompt := st.chat_input("Ask about an invoice, subscription, or issue..."):
             try:
                 response = requests.post(
                     f"{API_URL}/chat",
-                    json={"question": prompt},
-                    timeout=120,
+                    json={
+                        "question": prompt,
+                        "thread_id": st.session_state.thread_id,
+                    },
+                    timeout=160,
                 )
                 response.raise_for_status()
                 data = response.json()
-                answer = data["answer"]
+
+                if data.get("pending_approval"):
+                    answer = (
+                        "Your refund request is pending "
+                        "finance approval."
+                    )
+                    st.info(
+                        "Pending approval — no refund "
+                        "has been executed."
+                    )
+                else:
+                    answer = data.get(
+                        "answer",
+                        "I couldn't generate a response.",
+                    )
+
             except requests.RequestException as exc:
                 answer = f"Couldn't reach the API: {exc}"
 

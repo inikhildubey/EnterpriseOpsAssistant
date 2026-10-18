@@ -77,7 +77,7 @@ def billing_agent_node(state: BillingState) -> BillingState:
             {"role": "user", "content": state["question"]}
         ]
     })
-
+    print("Billing Agent invoked")
     messages = result.get("messages", [])
     answer = next(
         (

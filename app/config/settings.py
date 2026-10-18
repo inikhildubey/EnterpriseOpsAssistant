@@ -5,14 +5,14 @@ class Settings(BaseSettings):
     model_provider: str
     model_name: str
     temperature: float
-    # ollama_base_url: str
+    ollama_base_url: str
 
     embedding_model: str
 
     # openai_api_key: str | None = None
     # anthropic_api_key: str | None = None
-    openrouter_api_key: str | None = None
-    openrouter_base_url: str | None = None
+    # openrouter_api_key: str | None = None
+    # openrouter_base_url: str | None = None
 
 
     model_config = SettingsConfigDict(

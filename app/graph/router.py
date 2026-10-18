@@ -11,12 +11,49 @@ from app.graph.support import support_agent_node
 from app.models.factory import get_llm
 
 
-def router_node(state: RouterState) -> dict:
-    prompt = f"""
-    Classify the user's request into exactly one category:
-    billing, accounts, support, refund, or unknown.
+# def router_node(state: RouterState) -> dict:
+#     prompt = f"""
+#     Classify the user's request into exactly one category:
+#     billing, accounts, support, refund, general, or unknown.
+#
+#     Use:
+#     - billing for invoices, payments, charges, and billing questions
+#     - accounts for subscriptions and account-related questions
+#     - support for technical issues and troubleshooting
+#     - refund for refund requests
+#     - general for greetings, casual conversation, and general questions
+#     - unknown only when the request cannot reasonably be classified
+#
+#     User request: {state["question"]}
+#
+#     Return only the category.
+#     """
+#
+#     response = get_llm().invoke(prompt)
+#     department = response.content.strip().lower()
+#
+#     if department not in {"billing", "accounts", "support", "refund", "general"}:
+#         department = "unknown"
+#
+#     return {"department": department}
 
-    User request: {state["question"]}
+def supervisor_node(state: RouterState) -> dict:
+    prompt = f"""
+    You are the supervisor of an enterprise operations assistant.
+
+    Classify the user's request into exactly one category:
+    billing, accounts, support, refund, general, or unknown.
+
+    Routing rules:
+    - billing: invoices, payments, charges, billing discrepancies
+    - accounts: subscriptions and account-related questions
+    - support: technical issues and troubleshooting
+    - refund: refund requests
+    - general: greetings and general questions
+    - unknown: requests that cannot reasonably be classified
+
+    User request:
+    {state["question"]}
 
     Return only the category.
     """
@@ -24,11 +61,19 @@ def router_node(state: RouterState) -> dict:
     response = get_llm().invoke(prompt)
     department = response.content.strip().lower()
 
-    if department not in {"billing", "accounts", "support", "refund"}:
+    allowed_departments = {
+        "billing",
+        "accounts",
+        "support",
+        "refund",
+        "general",
+        "unknown",
+    }
+
+    if department not in allowed_departments:
         department = "unknown"
 
     return {"department": department}
-
 
 def unknown_node(state: RouterState) -> dict:
     return {
@@ -124,33 +169,91 @@ def unknown_node(state: RouterState) -> dict:
 #         "answer": result.get("message", ""),
 #     }
 
+def general_node(state: RouterState) -> dict:
+    response = get_llm().invoke(state["question"])
+
+    return {
+        "answer": (
+            response.content
+            if isinstance(response.content, str)
+            else str(response.content)
+        )
+    }
+
+
+def refund_details_node(state: RouterState) -> dict:
+    return {
+        "answer": (
+            "I can help start a refund request. "
+            "Please provide the customer ID, invoice ID, "
+            "refund amount, and reason for the refund."
+        )
+    }
+
 
 def build_router_graph():
     graph = StateGraph(RouterState)
 
-    graph.add_node("router", router_node)
+    graph.add_node("router", supervisor_node)
     graph.add_node("billing", billing_agent_node)
     graph.add_node("accounts", accounts_agent_node)
     graph.add_node("support", support_agent_node)
+    graph.add_node("general", general_node)
     graph.add_node("unknown", unknown_node)
-
+    graph.add_node("refund_details", refund_details_node)
     graph.add_node("refund", build_refund_approval_graph())
 
     graph.add_edge(START, "router")
 
+    def route_request(state: RouterState) -> str:
+        department = state["department"]
+
+        if department == "refund":
+            required = (
+                state.get("customer_id"),
+                state.get("invoice_id"),
+                state.get("refund_amount"),
+                state.get("refund_reason"),
+            )
+
+            if any(value is None or value == "" for value in required):
+                return "refund_details"
+
+        if department in {
+            "billing",
+            "accounts",
+            "support",
+            "general",
+            "unknown",
+            "refund",
+        }:
+            return department
+
+        return "unknown"
+
     graph.add_conditional_edges(
         "router",
-        lambda state: state["department"],
+        route_request,
         {
             "billing": "billing",
             "accounts": "accounts",
             "support": "support",
-            "refund": "refund",
+            "general": "general",
             "unknown": "unknown",
+            "refund_details": "refund_details",
+            "refund": "refund",
         },
     )
 
-    for node in ("billing", "accounts", "support", "unknown", "refund"):
+    for node in (
+            "billing",
+            "accounts",
+            "support",
+            "general",
+            "unknown",
+            "refund_details",
+            "refund",
+    ):
         graph.add_edge(node, END)
 
     checkpointer = InMemorySaver()
