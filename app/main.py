@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.graph.router import build_router_graph
 
+
 app = FastAPI(
     title="EnterpriseOpsAssistant API",
     description="API for billing, accounts, support, and refunds.",
@@ -13,6 +14,7 @@ app = FastAPI(
 )
 
 # Build once so the in-memory checkpointer is shared across requests.
+graph = build_router_graph()
 
 
 class ChatRequest(BaseModel):
@@ -58,13 +60,23 @@ def chat(request: ChatRequest):
         for key, value in state.items()
         if value is not None
     }
-    config = {
-        "configurable": {"thread_id": thread_id}
-    }
+    # config = {
+    #     "configurable": {"thread_id": thread_id}
+    # }
 
     try:
-        graph = build_router_graph()
-        result = graph.invoke(state, config=config)
+        # result = graph.invoke(state, config=config)
+        print("[DEBUG] About to invoke graph", flush=True)
+        print(f"[DEBUG] Input state: {state}", flush=True)
+        result = graph.invoke(
+            state,
+            config={
+                "configurable": {"thread_id": thread_id},
+                "recursion_limit": 10,
+            },
+        )
+        print("[DEBUG] Graph invocation completed", flush=True)
+        print(f"[DEBUG] Result keys: {list(result.keys())}", flush=True)
     except Exception as exc:
         print(exc)
         raise HTTPException(
@@ -94,3 +106,57 @@ def chat(request: ChatRequest):
         approval_request=approval_request,
         approval_status=result.get("approval_status"),
     )
+
+
+from typing import Literal
+from pydantic import BaseModel
+from fastapi import HTTPException
+from langgraph.types import Command
+
+
+class RefundApprovalRequest(BaseModel):
+    thread_id: str
+    approved: bool
+
+
+@app.post("/refund/approval")
+def refund_approval(request: RefundApprovalRequest):
+    config = {
+        "configurable": {
+            "thread_id": request.thread_id
+        }
+    }
+
+    try:
+        print(
+            f"[DEBUG] Resuming refund workflow: "
+            f"thread_id={request.thread_id}, approved={request.approved}",
+            flush=True,
+        )
+
+        result = graph.invoke(
+            Command(resume={"approved": request.approved}),
+            config=config,
+        )
+
+        print(f"[DEBUG] Resume result: {result}", flush=True)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Approval processing failed: {type(exc).__name__}: {exc}",
+        ) from exc
+
+    interrupts = result.get("__interrupt__", [])
+    pending_approval = bool(interrupts)
+
+    return {
+        "answer": result.get("answer", ""),
+        "thread_id": request.thread_id,
+        "pending_approval": pending_approval,
+        "approval_request": (
+            getattr(interrupts[0], "value", None)
+            if pending_approval
+            else None
+        ),
+        "approval_status": result.get("approval_status"),
+    }

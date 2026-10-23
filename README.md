@@ -38,7 +38,9 @@ chat-bot-assistant/
 │   ├── rag/           # RAG pipeline: ingestion, loading, retrieval, and chains
 │   ├── schema/       # Pydantic schemas for structured outputs
 │   ├── tools/        # Tool definitions for agentic function calling
-│   └── main.py       # Application entry point and scenario test suite
+│   └── main.py       # FastAPI application entry point
+├── ui/
+│   └── streamlit_app.py # Streamlit frontend application
 ├── pyproject.toml    # Project dependencies and metadata
 └── uv.lock           # Deterministic lockfile for dependencies
 ```
@@ -57,9 +59,9 @@ chat-bot-assistant/
    ollama run llama3
    ```
 
-### Installation
+### Installation & Setup
 
-1. Clone the repository:
+1. Clone the repository and enter the directory:
    ```bash
    git clone <repository-url>
    cd chat-bot-assistant
@@ -70,24 +72,43 @@ chat-bot-assistant/
    uv sync
    ```
 
-### Configuration
+3. Configure environment variables by creating a `.env` file in the root:
+   ```env
+   MODEL_PROVIDER=ollama
+   MODEL_NAME=llama3
+   TEMPERATURE=0.0
+   OLLAMA_BASE_URL=http://localhost:11434
+   EMBEDDING_MODEL=nomic-embed-text
+   ```
 
-Create a `.env` file in the root directory:
+## ⚡ Running the Application
 
-```env
-MODEL_PROVIDER=ollama
-MODEL_NAME=llama3
-TEMPERATURE=0.0
-OLLAMA_BASE_URL=http://localhost:11434
-EMBEDDING_MODEL=nomic-embed-text
+The assistant consists of a FastAPI backend and a Streamlit frontend.
+
+### 1. Start the Backend (API)
+The backend handles the LangGraph orchestration and tool execution. Run it using Uvicorn:
+```bash
+uv run uvicorn app.main:app --reload
+```
+The API will be available at `http://localhost:8000`. You can access the interactive API documentation (Swagger UI) at `http://localhost:8000/docs`.
+
+### 2. Start the Frontend (UI)
+The frontend provides a chat interface for interacting with the agents. Run it using Streamlit:
+```bash
+uv run streamlit run ui/streamlit_app.py
 ```
 
-### Running the Assistant
+## 📚 Managing the Knowledge Base
 
-Execute the `main.py` script to run the test scenarios and verify the routing and agent capabilities:
+The assistant uses a RAG pipeline to answer policy questions based on Markdown files located in `app/data/billing/`.
 
-```bash
-uv run python app/main.py
+### Ingesting Documents
+Knowledge ingestion is not automatic. Whenever you modify the `billing_knowledge_base.md` file, you must re-ingest the documents into the vector store.
+
+You can do this by running a small ingestion script:
+```python
+from app.rag.ingest import ingest_billing_documents
+ingest_billing_documents()
 ```
 
 ## 🧠 How it Works
